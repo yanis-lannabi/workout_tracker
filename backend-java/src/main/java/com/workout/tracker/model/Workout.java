@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,16 +21,12 @@ public class Workout {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     @Column(nullable = false)
     private String name;
 
     private String description;
 
-    @Column(name = "scheduled_date_time", nullable = false)
+    @Column(name = "scheduled_date_time")
     private LocalDateTime scheduledDateTime;
 
     @Column(name = "completed_date_time")
@@ -37,6 +34,10 @@ public class Workout {
 
     private String comments;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @OneToMany(mappedBy = "workout", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WorkoutExercise> exercises;
+    private List<WorkoutExercise> exercises = new ArrayList<>();
 } 

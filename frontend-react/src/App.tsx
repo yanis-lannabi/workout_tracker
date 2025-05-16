@@ -5,7 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Dashboard } from './pages/Dashboard';
 import { Exercises } from './pages/Exercises';
-import { Workout } from './pages/Workout';
+import { WorkoutPage } from './pages/Workout';
 import { Statistics } from './pages/Statistics';
 
 const theme = createTheme({
@@ -30,7 +30,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/exercises" element={<Exercises />} />
-            <Route path="/workouts" element={<Workout />} />
+            <Route path="/workouts" element={<WorkoutPage />} />
             <Route path="/statistics" element={<Statistics />} />
             {/* TODO: Add other routes */}
           </Routes>

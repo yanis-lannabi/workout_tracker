@@ -1,61 +1,181 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Grid, Paper, Typography, List, ListItem, ListItemText } from '@mui/material';
-import { Navbar } from '../components/Navbar';
+import {
+    Box,
+    Chip,
+    Container,
+    Grid,
+    Paper,
+    Typography,
+    CircularProgress,
+    Alert,
+    Menu,
+    MenuItem,
+    IconButton
+} from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { api } from '../services/api';
+import { AddWorkoutForm } from '../components/AddWorkoutForm';
+import { Navbar } from '../components/Navbar';
 
-export const Workout: React.FC = () => {
-    const [workouts, setWorkouts] = useState([]);
+interface Workout {
+    id: number;
+    name: string;
+    description: string;
+    scheduledDateTime: string;
+    status: 'PLANNED' | 'COMPLETED' | 'CANCELLED';
+    comments?: string;
+}
+
+export const WorkoutPage: React.FC = () => {
+    const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+
+    const fetchWorkouts = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get<Workout[]>('/workouts');
+            setWorkouts(response.data);
+            setError(null);
+        } catch (err) {
+            setError('Failed to fetch workouts');
+            console.error('Error fetching workouts:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchWorkouts = async () => {
-            try {
-                const response = await api.get('/workouts');
-                console.log('Workouts data:', response.data);
-                setWorkouts(response.data);
-            } catch (error) {
-                console.error('Error fetching workouts:', error);
-                if (error instanceof Error) {
-                    setError(error);
-                } else {
-                    setError(new Error('An unknown error occurred'));
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchWorkouts();
     }, []);
 
-    if (loading) return <Typography>Loading...</Typography>;
-    if (error) return <Typography>Error loading workouts.</Typography>;
+    const handleMenuClick = (event: React.MouseEvent<HTMLElement>, workoutId: number) => {
+        setAnchorEl(event.currentTarget);
+        setSelectedWorkoutId(workoutId);
+    };
 
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+        setSelectedWorkoutId(null);
+    };
+
+    const handleStatusChange = async (newStatus: Workout['status']) => {
+        if (!selectedWorkoutId) return;
+
+        try {
+            await api.patch(`/workouts/${selectedWorkoutId}/status`, { status: newStatus });
+            await fetchWorkouts();
+            handleMenuClose();
+        } catch (err) {
+            setError('Failed to update workout status');
+            console.error('Error updating workout status:', err);
+        }
+    };
+
+    const getStatusColor = (status: Workout['status']): { color: 'success' | 'error' | 'primary', backgroundColor: string, fontWeight: string } => {
+        switch (status) {
+            case 'COMPLETED':
+                return {
+                    color: 'success',
+                    backgroundColor: 'success.light',
+                    fontWeight: 'bold'
+                };
+            case 'CANCELLED':
+                return {
+                    color: 'error',
+                    backgroundColor: 'error.light',
+                    fontWeight: 'bold'
+                };
+            default:
+                return {
+                    color: 'primary',
+                    backgroundColor: 'primary.light',
+                    fontWeight: 'bold'
+                };
+        }
+    };
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+                <CircularProgress />
+            </Box>
+        );
+    }
     return (
         <>
             <Navbar />
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Typography component="h1" variant="h4" color="primary" gutterBottom>
-                    Workouts
-                </Typography>
                 <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                        <Paper sx={{ p: 2 }}>
-                            <List>
-                                {workouts.map((workout: any) => (
-                                    <ListItem key={workout.id}>
-                                        <ListItemText
-                                            primary={workout.name}
-                                            secondary={workout.description}
+                    <Grid item xs={12} md={4}>
+                        <AddWorkoutForm onWorkoutAdded={fetchWorkouts} />
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                        {error && (
+                            <Alert severity="error" sx={{ mb: 2 }}>
+                                {error}
+                            </Alert>
+                        )}
+                        {workouts.map((workout) => (
+                            <Paper key={workout.id} sx={{ p: 2, mb: 2 }}>
+                                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                                    <Typography variant="h6" component="h2">
+                                        {workout.name}
+                                    </Typography>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        <Chip
+                                            label={workout.status}
+                                            color={getStatusColor(workout.status).color}
+                                            size="small"
+                                            sx={{
+                                                backgroundColor: getStatusColor(workout.status).backgroundColor,
+                                                fontWeight: getStatusColor(workout.status).fontWeight,
+                                                '& .MuiChip-label': {
+                                                    color: 'white'
+                                                }
+                                            }}
                                         />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Paper>
+                                        <IconButton
+                                            size="small"
+                                            onClick={(e) => handleMenuClick(e, workout.id)}
+                                        >
+                                            <MoreVertIcon />
+                                        </IconButton>
+                                    </Box>
+                                </Box>
+                                {workout.description && (
+                                    <Typography color="text.secondary" sx={{ mt: 1 }}>
+                                        {workout.description}
+                                    </Typography>
+                                )}
+                                <Box display="flex" gap={1} mt={1}>
+                                    <Chip
+                                        label={new Date(workout.scheduledDateTime).toLocaleString()}
+                                        size="small"
+                                        variant="outlined"
+                                    />
+                                </Box>
+                                {workout.comments && (
+                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                        {workout.comments}
+                                    </Typography>
+                                )}
+                            </Paper>
+                        ))}
                     </Grid>
                 </Grid>
             </Container>
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+            >
+                <MenuItem onClick={() => handleStatusChange('PLANNED')}>Mark as Planned</MenuItem>
+                <MenuItem onClick={() => handleStatusChange('COMPLETED')}>Mark as Completed</MenuItem>
+                <MenuItem onClick={() => handleStatusChange('CANCELLED')}>Mark as Cancelled</MenuItem>
+            </Menu>
         </>
     );
-}; 
+};

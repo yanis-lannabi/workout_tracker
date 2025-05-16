@@ -7,6 +7,7 @@ import com.workout.tracker.model.MuscleGroup;
 import com.workout.tracker.repository.ExerciseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +39,18 @@ public class ExerciseService {
         return exerciseRepository.findById(id)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new RuntimeException("Exercise not found"));
+    }
+
+    @Transactional
+    public ExerciseDTO createExercise(ExerciseDTO exerciseDTO) {
+        Exercise exercise = new Exercise();
+        exercise.setName(exerciseDTO.getName());
+        exercise.setDescription(exerciseDTO.getDescription());
+        exercise.setCategory(exerciseDTO.getCategory());
+        exercise.setMuscleGroup(exerciseDTO.getMuscleGroup());
+
+        Exercise savedExercise = exerciseRepository.save(exercise);
+        return convertToDTO(savedExercise);
     }
 
     private ExerciseDTO convertToDTO(Exercise exercise) {

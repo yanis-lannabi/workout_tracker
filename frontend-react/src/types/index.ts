@@ -6,12 +6,30 @@ export interface User {
     lastName?: string;
 }
 
+export enum ExerciseCategory {
+    CARDIO = 'CARDIO',
+    STRENGTH = 'STRENGTH',
+    FLEXIBILITY = 'FLEXIBILITY',
+    BALANCE = 'BALANCE',
+    CORE = 'CORE'
+}
+
+export enum MuscleGroup {
+    CHEST = 'CHEST',
+    BACK = 'BACK',
+    SHOULDERS = 'SHOULDERS',
+    ARMS = 'ARMS',
+    ABS = 'ABS',
+    LEGS = 'LEGS',
+    FULL_BODY = 'FULL_BODY'
+}
+
 export interface Exercise {
     id: number;
     name: string;
     description: string;
-    category: string;
-    muscleGroup: string;
+    category: ExerciseCategory;
+    muscleGroup: MuscleGroup;
 }
 
 export interface Workout {

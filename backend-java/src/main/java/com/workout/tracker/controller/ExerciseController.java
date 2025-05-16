@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/exercises")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class ExerciseController {
     private final ExerciseService exerciseService;
 
@@ -34,5 +35,10 @@ public class ExerciseController {
     @GetMapping("/{id}")
     public ResponseEntity<ExerciseDTO> getExerciseById(@PathVariable Long id) {
         return ResponseEntity.ok(exerciseService.getExerciseById(id));
+    }
+
+    @PostMapping(consumes = "application/json", produces = "application/json")
+    public ResponseEntity<ExerciseDTO> createExercise(@RequestBody ExerciseDTO exerciseDTO) {
+        return ResponseEntity.ok(exerciseService.createExercise(exerciseDTO));
     }
 } 

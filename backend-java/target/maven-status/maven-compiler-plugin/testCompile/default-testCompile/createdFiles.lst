@@ -1,0 +1,4 @@
+com/workout/tracker/service/WorkoutServiceTest.class
+com/workout/tracker/controller/WorkoutControllerTest.class
+com/workout/tracker/config/TestSecurityConfig.class
+com/workout/tracker/config/TestSecurityConfig$1.class

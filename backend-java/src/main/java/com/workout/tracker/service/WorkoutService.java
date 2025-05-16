@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WorkoutService {
     private final WorkoutRepository workoutRepository;
+    private final WorkoutExerciseService workoutExerciseService;
 
     public List<WorkoutDTO> getUserWorkouts(User user) {
         return workoutRepository.findByUser(user).stream()
@@ -72,6 +73,7 @@ public class WorkoutService {
         dto.setScheduledDateTime(workout.getScheduledDateTime());
         dto.setCompletedDateTime(workout.getCompletedDateTime());
         dto.setComments(workout.getComments());
+        dto.setExercises(workoutExerciseService.getWorkoutExercises(workout.getId()));
         return dto;
     }
 } 
